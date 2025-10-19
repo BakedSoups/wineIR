@@ -26,9 +26,7 @@ def product_emebedding() ->  Dict[str, List[str]]:
     #   ["all","the","reviews"]
     # output: 
     #   {"product_name": ["really","goood","reviews"]}
-    
     insightful_reviews = reviews.get_seed_reviews()
-    
     
     # generate tags based patterns in reviews 
     tags = []

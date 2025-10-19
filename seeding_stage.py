@@ -1,4 +1,5 @@
 import re
+from data_retrieval import duckify
 from typing import List, Tuple 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -7,7 +8,6 @@ analyzer = SentimentIntensityAnalyzer()
 def _analyze_sentiment(review: str)-> float:
     scores = analyzer.polarity_scores(review)
     return scores["compound"]
-
 
 def _keyword_frequency(review) -> float:
     wine_keywords = [
@@ -56,10 +56,8 @@ def _spam_filter(reviews: list[str]) -> list[str]:
             spam_reviews.append(review)
     return spam_reviews
 
-
-
 # uses old method of finding top reivews to help create a seeding stage 
-def get_seed_reviews(review) -> List[str]:
+def get_seed_reviews() -> List[str]:
 
     # filter if less than 50 words
     review_sample = [r for r in review if len(r.split()) >= 50]
@@ -70,11 +68,13 @@ def get_seed_reviews(review) -> List[str]:
     review_sample = [r for r in reviews if r not in _spam_filter(reviews)]
     scored_reviews = [] 
     
+    # filter out negative reviews 
+    review_sample = [r for r in review_sample if _analyze_sentiment(r) >= -0.6]
+
     for review in review_sample:
-        score = _analyze_sentiment(review) 
         keyword_score = _keyword_frequency(review)
-        scored_reviews.append((review, score, keyword_score))
-    sorted_score_reviews = sorted(scored_reviews, key=lambda x: (x[1], x[2]), reverse=True)
+        scored_reviews.append((review, keyword_score))
+    sorted_score_reviews = sorted(scored_reviews, key=lambda x: (x[1]), reverse=True)
     return sorted_score_reviews
 
 
@@ -87,11 +87,13 @@ if __name__ == "__main__":
         "BUY IT BUY IT NOW BUYYYYYYYYYYY",
         "AAAAAAAAAAAAAAAAAAAAA",
         "It broke after one day I hate this wine and I hate this life crisp tho."
-
     ]
 
+    df_slice = duckify(10, 12)  # rows 10 to 19
+    print(df_slice.shape)
+    print(df_slice.columns)
     # top = get_seed_reviews(reviews)
     # print("Top reviews by sentiment:")
-    # for review, score, key_score in top:
-    #     print(f"{review}, {score}, {key_score}") 
+    # for review, key_score in top:
+    #     print(f"{review}, {key_score}") 
 
